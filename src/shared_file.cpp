@@ -1,8 +1,9 @@
 #include <cfile.hpp>
 #include <memory>
 #include <cstdio>
-
 using namespace cfile;
+
+//std::mutex g_mtxOpenClose;
 
 bool shared_file::open(const std::string &i_sFile, const std::string &i_sAccess_Type)
 {
@@ -10,10 +11,16 @@ bool shared_file::open(const std::string &i_sFile, const std::string &i_sAccess_
 	if (close())
 	{
 		std::shared_ptr<FILE> pFileNew = std::shared_ptr<FILE>(std::fopen(i_sFile.c_str(),i_sAccess_Type.c_str()),&std::fclose);
+		if (pFileNew != nullptr)
 		{
-			std::lock_guard<std::mutex> lock(*m_mtx.get());
-			m_pFile = pFileNew;
-			bRet = (m_pFile != nullptr);
+			std::shared_ptr<std::mutex> mtx = std::make_shared<std::mutex>();
+			if (mtx != nullptr)
+			{
+				std::lock_guard<std::mutex> lock(*mtx.get());
+				m_mtx = mtx;
+				m_pFile = pFileNew;
+				bRet = (m_pFile != nullptr);
+			}
 		}
 	}
 	return bRet;
@@ -22,7 +29,12 @@ bool shared_file::close(void)
 {
 	if (m_pFile != nullptr)
 	{
-		m_pFile.reset();
+		if (m_mtx != nullptr) // we should never get here is m_mtx is null, but just in case...
+		{
+			std::lock_guard<std::mutex> lock(*m_mtx.get()); // hold mutex while file is closed
+			m_pFile.reset();
+		} // mutex released
+		m_mtx.reset(); // reset the mutex so that if this instance is shared it won't lock
 	}
 	return m_pFile == nullptr;
 }
@@ -31,17 +43,24 @@ bool shared_file::close(void)
 shared_file::shared_file(void)
 {
 	m_pFile = nullptr;
-	m_mtx = std::make_shared<std::mutex>();
+	m_mtx = nullptr;
 }
 shared_file::shared_file(const std::string &i_sFile, const std::string &i_sAccess_Type)
 {
-	m_pFile = nullptr;
+	{
+		m_pFile = nullptr;
+		m_mtx = nullptr;
+	}
 	open(i_sFile,i_sAccess_Type);
-	m_mtx = std::make_shared<std::mutex>();
 }
 shared_file::~shared_file(void)
 {
 	close();
+}
+shared_file::shared_file(const std::string &i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type)
+{
+	m_pFile = nullptr;
+	open(i_sFile,i_eAccess_Mode,i_eData_Type);
 }
 
 
