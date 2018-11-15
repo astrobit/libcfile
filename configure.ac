@@ -16,8 +16,18 @@ AM_INIT_AUTOMAKE
 #AC_PROG_RANLIB
 
 AC_LANG(C++)
+AX_CXX_COMPILE_STDCXX(11,noext,mandatory) #use c++11 standard
+
 
 LT_INIT
+
+PKG_PROG_PKG_CONFIG
+PKG_INSTALLDIR
+
+AC_SUBST([LIB_NAME],[libcfile])
+AC_SUBST([LIB_DESCRIPTION],["multithread safe c++ wrapper for C file I/O routines"])
+AC_SUBST([LIB_REQUIRES],[])
+
 
 AC_SUBST([PACKAGE_VERSION_MAJOR],package_version_major)
 AC_SUBST([PACKAGE_VERSION_MINOR],package_version_minor)
@@ -26,7 +36,7 @@ AC_SUBST([PACKAGE_REPOSITORY],package_repository)
 AC_SUBST([PACKAGE_AUTH_EMAIL],package_auth_email)
 AC_SUBST([API_VERSION],api_version)
 
-AC_CONFIG_FILES([Makefile],[],[PACKAGE_NAME='$PACKAGE_NAME' API_VERSION='$API_VERSION'])
+AC_CONFIG_FILES([Makefile $PACKAGE_NAME-$API_VERSION.pc:lib.pc.in],[],[PACKAGE_NAME='$PACKAGE_NAME' API_VERSION='$API_VERSION'])
 
 AC_OUTPUT
 
