@@ -4,11 +4,12 @@
 
 namespace cfile
 {
+	enum class access_mode{read,write,append,read_update,write_update,append_update};
+	enum class data_type{binary,text};
+
 	class cfile_base
 	{
 	public:
-		enum class access_mode{read,write,append,read_update,write_update,append_update};
-		enum class data_type{binary,text};
 	protected:
 	#if ((defined(_MSC_VER) && _MSVC_LANG < 201703L) || (defined(__GNUC__) && __cplusplus < 201701L))
 		static std::mutex m_mtxSwap;
@@ -19,9 +20,10 @@ namespace cfile
 		// pure virtual open and close
 		virtual bool 		close(void) = 0;
 		virtual bool 		open(const std::string &i_sFile, const std::string &i_sAccess_Type) = 0;
+		// alternate variant of open that uses slightly more user friendly method
+		virtual bool 		open(const std::string &i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type);
 
 		virtual bool 		flush(void) const;
-		virtual bool 		open(const std::string &i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type);
 		virtual size_t 		read(void * o_lpBuffer, size_t i_nSize_Bytes) const;
 		virtual size_t 		write(void * o_lpBuffer, size_t i_nSize_Bytes) const;
 		virtual size_t 		printf(const std::string & i_sFormat, ...) const;
@@ -59,7 +61,7 @@ namespace cfile
 	public:
 		unique_file(void);
 		unique_file(const std::string &i_sFile, const std::string &i_sAccess_Type);
-		unique_file(const std::string &i_sFile, cfile_base::access_mode i_eAccess_Mode, cfile_base::data_type i_eData_Type);
+		unique_file(const std::string &i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type);
 		~unique_file(void);
 
 		// dont allow copy. Use shared_file if copy is required
@@ -85,7 +87,7 @@ namespace cfile
 	public:
 		shared_file(void);
 		shared_file(const std::string &i_sFile, const std::string &i_sAccess_Type);
-		shared_file(const std::string &i_sFile, cfile_base::access_mode i_eAccess_Mode, cfile_base::data_type i_eData_Type);
+		shared_file(const std::string &i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type);
 		~shared_file(void);
 
 		bool 		close(void);
