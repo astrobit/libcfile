@@ -13,6 +13,13 @@ unique_file::unique_file(const std::string &i_sFile, const std::string &i_sAcces
 	m_pFile = nullptr;
 	open(i_sFile,i_sAccess_Type);
 }
+
+unique_file::unique_file(const std::string &i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type)
+{
+	m_pFile = nullptr;
+	open(i_sFile,i_eAccess_Mode,i_eData_Type);
+}
+
 unique_file::~unique_file(void)
 {
 	close();
@@ -61,6 +68,8 @@ bool unique_file::open(const std::string &i_sFile, const std::string &i_sAccess_
 	}
 	return bRet;
 }
+
+
 void unique_file::swap(unique_file & io_File)
 {
 	if (io_File.m_pFile != m_pFile) // if the pointers are already the same, don't do anything. Solves a potential deadlock for shared files 
