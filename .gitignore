@@ -52,3 +52,6 @@ missing
 src/.deps/
 src/.dirstamp
 
+# dist
+*.tar.gz
+
