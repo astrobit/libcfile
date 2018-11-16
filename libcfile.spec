@@ -14,7 +14,7 @@ Source0:        https://astronaos.com/libcfile/libcfile-1.0.0.tar.gz
 # compiles correctly, let me know and I will make the update to the RPM, or
 # please generate a pull request on github
 BuildRequires:  gcc >= 6.0
-Requires:       
+Requires:       none
 
 %description
 Shared library objects for thread-safe c++ wrappers for C file i/o routines.
@@ -52,7 +52,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %license LICENSE
 %doc README.md
-%{_bindir}/*
+#%{_bindir}/*
 %{_libdir}/*.so.*
 
 %files devel
@@ -60,7 +60,7 @@ rm -rf $RPM_BUILD_ROOT
 #%%doc examples
 %license LICENSE
 %doc README.md
-%{_includedir}/*.h
+%{_includedir}/*.hpp
 %{_libdir}/*.a
 %{_libdir}/*.la
 %{_libdir}/*.so
