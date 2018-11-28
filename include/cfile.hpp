@@ -1,100 +1,84 @@
+#pragma once
 #include <cstdio>
-#include <mutex>
-#include <memory>
+
+//
+#if defined(_WIN32) || defined(_WIN64)
+	#define EXPORT	__declspec(dllexport)
+#else
+	#define EXPORT
+#endif
 
 namespace cfile
 {
 	enum class access_mode{read,write,append,read_update,write_update,append_update};
 	enum class data_type{binary,text};
 
-	class cfile_base
+	EXPORT class cfile_base
 	{
-	public:
-	protected:
-	#if ((defined(_MSC_VER) && _MSVC_LANG < 201703L) || (defined(__GNUC__) && __cplusplus < 201701L))
-		static std::mutex m_mtxSwap;
-	#endif
-		virtual FILE * get_file_pointer(void) const = 0;
-		virtual std::mutex * get_mutex_pointer(void) const  = 0;
 	public:
 		// pure virtual open and close
 		virtual bool 		close(void) = 0;
-		virtual bool 		open(const std::string &i_sFile, const std::string &i_sAccess_Type) = 0;
+		virtual bool 		open(const char * i_sFile, const char * i_sAccess_Type) = 0;
 		// alternate variant of open that uses slightly more user friendly method
-		virtual bool 		open(const std::string &i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type);
+		virtual bool 		open_enum(const char * i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type) = 0;
 
-		virtual bool 		flush(void) const;
-		virtual size_t 		read(void * o_lpBuffer, size_t i_nSize_Bytes) const;
-		virtual size_t 		write(void * o_lpBuffer, size_t i_nSize_Bytes) const;
-		virtual size_t 		printf(const std::string & i_sFormat, ...) const;
-		virtual size_t 		scanf(const std::string & i_sFormat, ...) const;
-		virtual std::string gets(size_t i_tSize_Bytes = static_cast<size_t>(-1)) const;
-		virtual std::string gets_stripped(size_t i_tSize_Bytes = static_cast<size_t>(-1)) const;
-		virtual size_t 		puts(const std::string i_sString) const;
-		virtual fpos_t 		getpos(void) const;
-		virtual bool 		setpos(fpos_t i_cPos) const;
-		virtual bool 		eof(void) const;
-		virtual bool 		error(void) const;		
-		virtual bool 		rewind(size_t i_nDistance = static_cast<size_t>(-1)) const;
-		virtual bool 		fast_forward(size_t i_nDistance) const;
-		virtual bool 		seek(long int i_nDistance, int i_nOrigin) const;
-		virtual bool 		rewind_to_start(void) const;
-		virtual bool 		forward_to_end(void) const;
-		virtual void 		clear_error(void) const;
-		virtual char 		getc(void) const;
-		virtual char 		putc(char i_nChar) const;
-		virtual size_t 		tell(void) const;
-		virtual bool 		is_open(void) const;
+		virtual bool 		flush(void) const = 0;
+		virtual size_t 		read(void * o_lpBuffer, size_t i_nSize_Bytes) const = 0;
+		virtual size_t 		write(void * o_lpBuffer, size_t i_nSize_Bytes) const = 0;
+		virtual size_t 		printf(const char * i_sFormat, ...) const = 0;
+		virtual size_t 		scanf(const char * i_sFormat, ...) const = 0;
+		virtual const char *		gets(size_t i_tSize_Bytes = static_cast<size_t>(-1)) const = 0;
+		virtual const char *		gets_stripped(size_t i_tSize_Bytes = static_cast<size_t>(-1)) const = 0;
+		virtual size_t 		puts(const char * i_sString) const = 0;
+		virtual fpos_t 		getpos(void) const = 0;
+		virtual bool 		setpos(fpos_t i_cPos) const = 0;
+		virtual bool 		eof(void) const = 0;
+		virtual bool 		error(void) const = 0;		
+		virtual bool 		rewind(size_t i_nDistance = static_cast<size_t>(-1)) const = 0;
+		virtual bool 		fast_forward(size_t i_nDistance) const = 0;
+		virtual bool 		seek(long int i_nDistance, int i_nOrigin) const = 0;
+		virtual bool 		rewind_to_start(void) const = 0;
+		virtual bool 		forward_to_end(void) const = 0;
+		virtual void 		clear_error(void) const = 0;
+		virtual char 		getc(void) const = 0;
+		virtual char 		putc(char i_nChar) const = 0;
+		virtual size_t 		tell(void) const = 0;
+		virtual bool 		is_open(void) const = 0;
+
+		void * operator new(size_t) = delete;
+		void operator delete(void *) = delete;
 	};
 
-			
 
-	class unique_file : public cfile_base
+	EXPORT class unique_file : virtual public cfile_base
 	{
-	private:
-		FILE *				m_pFile;
-		mutable std::mutex	m_mtx;
-
-		virtual FILE * get_file_pointer(void) const;
-		virtual std::mutex * get_mutex_pointer(void) const;
-
 	public:
-		unique_file(void);
-		unique_file(const std::string &i_sFile, const std::string &i_sAccess_Type);
-		unique_file(const std::string &i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type);
-		~unique_file(void);
-
-		// dont allow copy. Use shared_file if copy is required
+		unique_file(void){}
 		unique_file(const unique_file & i_cRHO) = delete;
 		unique_file & operator =(const unique_file & i_cRHO) = delete;
+		virtual void		swap(unique_file & i_cRHO) = 0; 
 
-		bool 		close(void);
-		using cfile_base::open;
-		bool 		open(const std::string &i_sFile, const std::string &i_sAccess_Type);
-		void		swap(unique_file & i_cRHO); 
+		void * operator new(size_t) = delete;
+		void operator delete(void *) = delete;
 	};
-	
 
-	class shared_file : public cfile_base
+	EXPORT class shared_file : virtual public cfile_base
 	{
-	private:
-		std::shared_ptr<FILE>	m_pFile;
-		mutable std::shared_ptr<std::mutex>		m_mtx;
-
-		virtual FILE * get_file_pointer(void) const;
-		virtual std::mutex * get_mutex_pointer(void) const;
-
 	public:
-		shared_file(void);
-		shared_file(const std::string &i_sFile, const std::string &i_sAccess_Type);
-		shared_file(const std::string &i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type);
-		~shared_file(void);
+		virtual void		swap(shared_file & i_cRHO) = 0; 
 
-		bool 		close(void);
-		using cfile_base::open;
-		bool 		open(const std::string &i_sFile, const std::string &i_sAccess_Type);
-		void		swap(shared_file & i_cRHO); 
-
+		void * operator new(size_t) = delete;
+		void operator delete(void *) = delete;
 	};
+
+	EXPORT extern unique_file *		new_unique_file(const char * i_pFilename = nullptr, const char * i_pAccess = nullptr);
+	EXPORT extern unique_file *		new_unique_file_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type);
+	EXPORT extern void				delete_unique_file(unique_file * i_pUnique);
+
+	EXPORT extern shared_file *		new_shared_file(const char * i_pFilename = nullptr, const char * i_pAccess = nullptr);
+	EXPORT extern shared_file *		new_shared_file_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type);
+	EXPORT extern void				delete_shared_file(shared_file * i_pShared);
+
+	EXPORT extern void release_string(const char * i_lpszString);
 }
 

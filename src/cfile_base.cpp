@@ -1,15 +1,15 @@
 #include <cstdio>
 #include <cfile.hpp>
 #include <cstdarg>
+#include <cfile_inst.hpp>
+#include <cstring>
 
 using namespace cfile;
 
 
-#if ((defined(_MSC_VER) && _MSVC_LANG < 201703L) || (defined(__GNUC__) && __cplusplus < 201701L))
-std::mutex cfile_base::m_mtxSwap;
-#endif
 
-bool cfile_base::flush(void) const
+
+bool cfile_base_inst::flush(void) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -24,38 +24,41 @@ bool cfile_base::flush(void) const
 	}
 	return bRet;
 }
-bool cfile_base::open(const std::string &i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type)
+
+
+bool cfile_base_inst::open_enum(const char * i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type)
 {
-	std::string i_sMode;
+	char pMode[4] = {0,0,0,0};
 	switch (i_eAccess_Mode)
 	{
+	case access_mode::read_update:
+		pMode[1] = '+';
 	default:
 	case access_mode::read:
-		i_sMode = "r";
-		break;
-	case access_mode::read_update:
-		i_sMode = "r+";
-		break;
-	case access_mode::write:
-		i_sMode = "w";
+		pMode[0] = 'r';
 		break;
 	case access_mode::write_update:
-		i_sMode = "w+";
-		break;
-	case access_mode::append:
-		i_sMode = "a";
+		pMode[1] = '+';
+	case access_mode::write:
+		pMode[0] = 'w';
 		break;
 	case access_mode::append_update:
-		i_sMode = "a+";
+		pMode[1] = '+';
+	case access_mode::append:
+		pMode[0] = 'a';
 		break;
 	}
+	size_t	tIdx = 1;
+	if (pMode[1] != 0)
+		tIdx = 2;
+
 	if (i_eData_Type == data_type::binary)
-		i_sMode.push_back('b');
+		pMode[tIdx] = 'b';
 	else
-		i_sMode.push_back('t');
-	return open(i_sFile,i_sMode);
+		pMode[tIdx] = 't';
+	return open(i_sFile,pMode);
 }
-size_t cfile_base::read(void * o_lpBuffer, size_t i_nSize_Bytes) const
+size_t cfile_base_inst::read(void * o_lpBuffer, size_t i_nSize_Bytes) const
 {
 	size_t nRet = 0;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -70,7 +73,7 @@ size_t cfile_base::read(void * o_lpBuffer, size_t i_nSize_Bytes) const
 	}
 	return nRet;
 }
-size_t cfile_base::write(void * o_lpBuffer, size_t i_nSize_Bytes) const
+size_t cfile_base_inst::write(void * o_lpBuffer, size_t i_nSize_Bytes) const
 {
 	size_t nRet = 0;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -85,7 +88,7 @@ size_t cfile_base::write(void * o_lpBuffer, size_t i_nSize_Bytes) const
 	}
 	return nRet;
 }
-size_t cfile_base::printf(const std::string & i_sFormat, ...) const
+size_t cfile_base_inst::printf(const char * i_sFormat, ...) const
 {
 	size_t nRet = 0;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -97,14 +100,14 @@ size_t cfile_base::printf(const std::string & i_sFormat, ...) const
 		{
 			va_list args;
 			va_start(args, i_sFormat);
-			nRet = static_cast<size_t>(std::vfprintf(pFile,i_sFormat.c_str(), args));
+			nRet = static_cast<size_t>(std::vfprintf(pFile,i_sFormat, args));
 			va_end(args);
 		}
 	}
 	return nRet;
 }
 
-size_t cfile_base::scanf(const std::string & i_sFormat, ...) const
+size_t cfile_base_inst::scanf(const char * i_sFormat, ...) const
 {
 	size_t nRet = 0;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -116,14 +119,14 @@ size_t cfile_base::scanf(const std::string & i_sFormat, ...) const
 		{
 			va_list args;
 			va_start(args, i_sFormat);
-			nRet = static_cast<size_t>(std::vfscanf(pFile,i_sFormat.c_str(), args));
+			nRet = static_cast<size_t>(std::vfscanf(pFile,i_sFormat, args));
 			va_end(args);
 		}
 	}
 	return nRet;
 }
 
-std::string cfile_base::gets(size_t i_tSize_Bytes) const
+const char * cfile_base_inst::gets(size_t i_tSize_Bytes) const
 {
 	std::string sRet;
 	char nC;
@@ -152,10 +155,12 @@ std::string cfile_base::gets(size_t i_tSize_Bytes) const
 			}
 		}
 	}
-	return sRet;
+	char * lpRet = allocate_string(sRet.size() + 1);
+	strcpy(lpRet,sRet.c_str());
+	return lpRet;
 }
 
-std::string cfile_base::gets_stripped(size_t i_tSize_Bytes) const
+const char * cfile_base_inst::gets_stripped(size_t i_tSize_Bytes) const
 {
 	std::string sRet;
 	char nC;
@@ -182,10 +187,12 @@ std::string cfile_base::gets_stripped(size_t i_tSize_Bytes) const
 			}
 		}
 	}
-	return sRet;
+	char * lpRet = allocate_string(sRet.size() + 1);
+	strcpy(lpRet,sRet.c_str());
+	return lpRet;
 }
 
-size_t cfile_base::puts(const std::string i_sString) const
+size_t cfile_base_inst::puts(const char * i_sString) const
 {
 	size_t tRet = 0;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -195,13 +202,13 @@ size_t cfile_base::puts(const std::string i_sString) const
 		FILE * pFile = get_file_pointer();
 		if (pFile != nullptr)
 		{
-			tRet = std::fwrite(i_sString.c_str(),i_sString.size(),1,pFile);
+			tRet = std::fwrite(i_sString,strlen(i_sString),1,pFile);
 		}
 	}
 	return tRet;
 }
 
-fpos_t cfile_base::getpos(void) const
+fpos_t cfile_base_inst::getpos(void) const
 {
 	fpos_t cPos;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -217,7 +224,7 @@ fpos_t cfile_base::getpos(void) const
 	return cPos;
 }
 
-bool cfile_base::setpos(fpos_t i_cPos) const
+bool cfile_base_inst::setpos(fpos_t i_cPos) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -233,7 +240,7 @@ bool cfile_base::setpos(fpos_t i_cPos) const
 	return bRet;
 }
 
-bool cfile_base::eof(void) const
+bool cfile_base_inst::eof(void) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -249,7 +256,7 @@ bool cfile_base::eof(void) const
 	return bRet;
 }
 
-bool cfile_base::error(void) const
+bool cfile_base_inst::error(void) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -263,7 +270,7 @@ bool cfile_base::error(void) const
 	return bRet;
 }
 	
-bool cfile_base::rewind(size_t i_nDistance) const
+bool cfile_base_inst::rewind(size_t i_nDistance) const
 {
 	bool bRet = false;
 	if  (i_nDistance == static_cast<size_t>(-1))
@@ -297,7 +304,7 @@ bool cfile_base::rewind(size_t i_nDistance) const
 	}
 	return bRet;
 }
-bool cfile_base::fast_forward(size_t i_nDistance) const
+bool cfile_base_inst::fast_forward(size_t i_nDistance) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -310,7 +317,7 @@ bool cfile_base::fast_forward(size_t i_nDistance) const
 	}
 	return bRet;
 }
-bool cfile_base::seek(long int i_nDistance, int i_nOrigin) const
+bool cfile_base_inst::seek(long int i_nDistance, int i_nOrigin) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -323,7 +330,7 @@ bool cfile_base::seek(long int i_nDistance, int i_nOrigin) const
 	}
 	return bRet;
 }
-bool cfile_base::rewind_to_start(void) const
+bool cfile_base_inst::rewind_to_start(void) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -336,7 +343,7 @@ bool cfile_base::rewind_to_start(void) const
 	}
 	return bRet;
 }
-bool cfile_base::forward_to_end(void) const
+bool cfile_base_inst::forward_to_end(void) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -349,7 +356,7 @@ bool cfile_base::forward_to_end(void) const
 	}
 	return bRet;
 }
-void cfile_base::clear_error(void) const
+void cfile_base_inst::clear_error(void) const
 {
 	std::mutex * pMutex = get_mutex_pointer();
 	if (pMutex != nullptr)
@@ -361,7 +368,7 @@ void cfile_base::clear_error(void) const
 	}
 }
 
-char cfile_base::getc(void) const
+char cfile_base_inst::getc(void) const
 {
 	char nRet = EOF;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -375,7 +382,7 @@ char cfile_base::getc(void) const
 	return nRet;
 }
 
-char cfile_base::putc(char i_nChar) const
+char cfile_base_inst::putc(char i_nChar) const
 {
 	char nRet = EOF;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -389,7 +396,7 @@ char cfile_base::putc(char i_nChar) const
 	return nRet;
 }
 
-size_t cfile_base::tell(void) const
+size_t cfile_base_inst::tell(void) const
 {
 	size_t nRet = 0;
 	std::mutex * pMutex = get_mutex_pointer();
@@ -403,7 +410,7 @@ size_t cfile_base::tell(void) const
 	return nRet;
 }
 
-bool cfile_base::is_open(void) const
+bool cfile_base_inst::is_open(void) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = get_mutex_pointer();
