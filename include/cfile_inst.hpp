@@ -40,7 +40,7 @@ namespace cfile
 
 
 
-	class unique_file_inst : public unique_file, public cfile_base_inst
+	class unique_file_inst : public unique_file_base, public cfile_base_inst
 	{
 	private:
 		FILE *				m_pFile;
@@ -54,20 +54,20 @@ namespace cfile
 		void destruct(void);
 
 		unique_file_inst(void);
-		//virtual ~unique_file_inst(void);
+		virtual ~unique_file_inst(void);
 
 		// dont allow copy. Use shared_file if copy is required
-		unique_file_inst(const unique_file & i_cRHO) = delete;
-		unique_file_inst & operator =(const unique_file & i_cRHO) = delete;
+		unique_file_inst(const unique_file_inst & i_cRHO) = delete;
+		unique_file_inst & operator =(const unique_file_inst & i_cRHO) = delete;
 
 		virtual bool 		close(void);
-		using cfile_base::open;
+		//using cfile_base::open;
 		virtual bool 		open(const char * i_sFile, const char * i_sAccess_Type);
-		virtual void		swap(unique_file & i_cRHO); 
+		virtual void		swap(unique_file_base & i_cRHO); 
 	};
 
 
-	class shared_file_inst : public shared_file, public cfile_base_inst
+	class shared_file_inst : public shared_file_base, public cfile_base_inst
 	{
 	private:
 		std::shared_ptr<FILE>	m_pFile;
@@ -81,12 +81,12 @@ namespace cfile
 		void destruct(void);
 
 		shared_file_inst(void);
-		//virtual ~shared_file_inst(void);
+		virtual ~shared_file_inst(void);
 
 		virtual bool 		close(void);
-		using cfile_base::open;
+		//using cfile_base::open;
 		virtual bool 		open(const char * i_sFile, const char *i_sAccess_Type);
-		virtual void		swap(shared_file & i_cRHO); 
+		virtual void		swap(shared_file_base & i_cRHO); 
 
 	};
 

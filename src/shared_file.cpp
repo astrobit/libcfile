@@ -6,58 +6,89 @@ using namespace cfile;
 
 //std::mutex g_mtxOpenClose;
 
-
 	
-shared_file *		new_shared_file(const char * i_pFilename, const char * i_pAccess)
+shared_file_base *		cfile::new_shared_file(const char * i_pFilename, const char * i_pAccess)
 {
-	shared_file_inst * pInst = reinterpret_cast<shared_file_inst*>(malloc(sizeof(shared_file_inst)));
+	shared_file_inst * pInst = new shared_file_inst; //reinterpret_cast<shared_file_inst*>(malloc(sizeof(shared_file_inst)));
 	if (pInst != nullptr)
 	{
-		pInst->construct();
+			//printf("constructing\n");
+//		pInst->construct();
 		if (i_pFilename != nullptr && i_pFilename[0] != 0)
 		{
 			if (i_pAccess != nullptr && i_pAccess[0] != 0)
+			{
+				//printf("opening (f,a)\n");
 				pInst->open(i_pFilename,i_pAccess);
+			}
 			else
+			{
+				//printf("openinf (f,'rt')\n");
 				pInst->open(i_pFilename,"rt");
+			}
 		}
 	}
-	return reinterpret_cast<shared_file *>(pInst);
+	return reinterpret_cast<shared_file_base *>(pInst);
 }
-shared_file *		new_shared_file_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type)
+shared_file_base *		cfile::new_shared_file_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type)
 {
-	shared_file_inst * pInst = reinterpret_cast<shared_file_inst*>(malloc(sizeof(shared_file_inst)));
+	shared_file_inst * pInst = new shared_file_inst; //reinterpret_cast<shared_file_inst*>(malloc(sizeof(shared_file_inst)));
 	if (pInst != nullptr)
 	{
-		pInst->construct();
+//		pInst->construct();
 		pInst->open_enum(i_pFilename,i_eAccess_Mode,i_eData_Type);
 	}
-	return reinterpret_cast<shared_file *>(pInst);
+	return reinterpret_cast<shared_file_base *>(pInst);
 }
 
-void cfile::delete_shared_file(shared_file * i_lpvData)
+void cfile::delete_shared_file(shared_file_base * i_lpvData)
 {
 	if (i_lpvData != nullptr)
 	{
 		shared_file_inst * pInst = reinterpret_cast<shared_file_inst *>(i_lpvData);
-		pInst->destruct();
-		free(pInst);
+//		pInst->destruct();
+		delete pInst;
+//		free(pInst);
 	}
 }
+void cfile::delete_shared_file_deleter(void * i_pShared)
+{
+	delete_shared_file(reinterpret_cast<shared_file_base *>(i_pShared));
+}
 
+
+
+shared_file_base *		cfile::new_shared_file_array(size_t i_nNum_Files)
+{
+	shared_file_inst * pInst = new shared_file_inst[i_nNum_Files]; //reinterpret_cast<shared_file_inst*>(malloc(sizeof(shared_file_inst)));
+	return reinterpret_cast<shared_file_base *>(pInst);
+}
+void cfile::delete_shared_file_array(shared_file_base * i_lpvData)
+{
+	if (i_lpvData != nullptr)
+	{
+		shared_file_inst * pInst = reinterpret_cast<shared_file_inst *>(i_lpvData);
+		delete[] pInst;
+//		free(pInst);
+	}
+}
 
 
 bool shared_file_inst::open(const char *i_sFile, const char * i_sAccess_Type)
 {
 	bool bRet = false;
+	//printf("in open\n");
 	if (close() && i_sFile != nullptr && i_sFile[0] != 0 && i_sAccess_Type != nullptr)
 	{
+	//printf("open: opening file\n");
 		std::shared_ptr<FILE> pFileNew = std::shared_ptr<FILE>(std::fopen(i_sFile,i_sAccess_Type),&std::fclose);
 		if (pFileNew != nullptr)
 		{
+	//printf("open: allocating mutex\n");
 			std::shared_ptr<std::mutex> mtx = std::make_shared<std::mutex>();
 			if (mtx != nullptr)
 			{
+	//printf("open: lock and swap\n");
 				std::lock_guard<std::mutex> lock(*mtx.get());
 				m_pMutex = mtx;
 				m_pFile = pFileNew;
@@ -69,10 +100,13 @@ bool shared_file_inst::open(const char *i_sFile, const char * i_sAccess_Type)
 }
 bool shared_file_inst::close(void)
 {
+	//fprintf(stdout,"in close\n");
 	if (m_pFile != nullptr)
 	{
+	//fprintf(stdout,"close: file non null\n");
 		if (m_pMutex != nullptr) // we should never get here is m_mtx is null, but just in case...
 		{
+	//fprintf(stdout,"close: mutex non null\n");
 			std::lock_guard<std::mutex> lock(*m_pMutex.get()); // hold mutex while file is closed
 			m_pFile.reset();
 		} // mutex released
@@ -87,9 +121,14 @@ shared_file_inst::shared_file_inst(void)
 	construct();
 }
 
+shared_file_inst::~shared_file_inst(void)
+{
+	destruct();
+}
 
 void shared_file_inst::construct(void)
 {
+	printf("construc\n");
 	m_pFile = nullptr;
 	m_pMutex = nullptr;
 }
@@ -119,7 +158,7 @@ std::mutex g_mtxSF_Swap;
 #endif
 
 
-void shared_file_inst::swap(shared_file & io_File)
+void shared_file_inst::swap(shared_file_base & io_File)
 {
 	shared_file_inst * pRHO = reinterpret_cast<shared_file_inst *>(&io_File);
 

@@ -7,12 +7,12 @@ using namespace cfile;
 
 			
 	
-unique_file *		new_unique_file(const char * i_pFilename, const char * i_pAccess)
+unique_file_base *		cfile::new_unique_file(const char * i_pFilename, const char * i_pAccess)
 {
-	unique_file_inst * pInst = reinterpret_cast<unique_file_inst*>(malloc(sizeof(unique_file_inst)));
+	unique_file_inst * pInst = new unique_file_inst; //reinterpret_cast<unique_file_inst*>(malloc(sizeof(unique_file_inst)));
 	if (pInst != nullptr)
 	{
-		pInst->construct();
+		//pInst->construct();
 		if (i_pFilename != nullptr && i_pFilename[0] != 0)
 		{
 			if (i_pAccess != nullptr && i_pAccess[0] != 0)
@@ -21,26 +21,48 @@ unique_file *		new_unique_file(const char * i_pFilename, const char * i_pAccess)
 				pInst->open(i_pFilename,"rt");
 		}
 	}
-	return reinterpret_cast<unique_file *>(pInst);
+	return reinterpret_cast<unique_file_base *>(pInst);
 }
-unique_file *		new_unique_file_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type)
+unique_file_base *		cfile::new_unique_file_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type)
 {
-	unique_file_inst * pInst = reinterpret_cast<unique_file_inst*>(malloc(sizeof(unique_file_inst)));
+	unique_file_inst * pInst = new unique_file_inst; //reinterpret_cast<unique_file_inst*>(malloc(sizeof(unique_file_inst)));
 	if (pInst != nullptr)
 	{
-		pInst->construct();
+		//pInst->construct();
 		pInst->open_enum(i_pFilename,i_eAccess_Mode,i_eData_Type);
 	}
-	return reinterpret_cast<unique_file *>(pInst);
+	return reinterpret_cast<unique_file_base *>(pInst);
 }
 
-void cfile::delete_unique_file(unique_file * i_lpvData)
+void cfile::delete_unique_file(unique_file_base * i_lpvData)
 {
 	if (i_lpvData != nullptr)
 	{
 		unique_file_inst * pInst = reinterpret_cast<unique_file_inst *>(i_lpvData);
-		pInst->destruct();
-		free(pInst);
+		//pInst->destruct();
+		//free(pInst);
+		delete pInst;
+	}
+}
+
+void cfile::delete_unique_file_deleter(void * i_lpvData)
+{
+	delete_unique_file(reinterpret_cast<unique_file_base *>(i_lpvData));
+}
+
+unique_file_base *		cfile::new_unique_file_array(size_t i_nNum_Files)
+{
+	unique_file_inst * pInst = new unique_file_inst[i_nNum_Files]; //reinterpret_cast<unique_file_inst*>(malloc(sizeof(unique_file_inst)));
+	return reinterpret_cast<unique_file_base *>(pInst);
+}
+void cfile::delete_unique_file_array(unique_file_base * i_lpvData)
+{
+	if (i_lpvData != nullptr)
+	{
+		unique_file_inst * pInst = reinterpret_cast<unique_file_inst *>(i_lpvData);
+		//pInst->destruct();
+		//free(pInst);
+		delete[] pInst;
 	}
 }
 
@@ -48,6 +70,10 @@ void cfile::delete_unique_file(unique_file * i_lpvData)
 unique_file_inst::unique_file_inst(void)
 {
 	construct();
+}
+unique_file_inst::~unique_file_inst(void)
+{
+	destruct();
 }
 
 void unique_file_inst::construct(void)
@@ -111,7 +137,7 @@ std::mutex g_mtxUF_Swap;
 	#define __scoped_lock_available 1
 #endif
 
-void unique_file_inst::swap(unique_file & io_File)
+void unique_file_inst::swap(unique_file_base & io_File)
 {
 	unique_file_inst * pRHO = reinterpret_cast<unique_file_inst *>(&io_File);
 	if (pRHO->m_pFile != m_pFile) // if the pointers are already the same, don't do anything. Solves a potential deadlock for shared files 
