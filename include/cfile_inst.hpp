@@ -7,10 +7,13 @@ namespace cfile
 {
 	class cfile_base_inst : virtual public cfile_base
 	{
+	private:
+		std::shared_ptr<FILE> m_pFile;
+		std::shared_ptr<std::mutex> m_pMutex;
 	public:
-	protected:
-		virtual FILE * get_file_pointer(void) const = 0;
-		virtual std::mutex * get_mutex_pointer(void) const  = 0;
+		cfile_base_inst(void);
+		virtual ~cfile_base_inst(void);
+
 	public:
 		virtual bool 		open_enum(const char * i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type);
 
@@ -36,58 +39,10 @@ namespace cfile
 		virtual char 		putc(char i_nChar) const;
 		virtual size_t 		tell(void) const;
 		virtual bool 		is_open(void) const;
-	};
 
-
-
-	class unique_file_inst : public unique_file_base, public cfile_base_inst
-	{
-	private:
-		FILE *				m_pFile;
-		mutable std::mutex	m_mtx;
-
-		virtual FILE * get_file_pointer(void) const;
-		virtual std::mutex * get_mutex_pointer(void) const;
-
-	public:
-		void construct(void);
-		void destruct(void);
-
-		unique_file_inst(void);
-		virtual ~unique_file_inst(void);
-
-		// dont allow copy. Use shared_file if copy is required
-		unique_file_inst(const unique_file_inst & i_cRHO) = delete;
-		unique_file_inst & operator =(const unique_file_inst & i_cRHO) = delete;
 
 		virtual bool 		close(void);
-		//using cfile_base::open;
 		virtual bool 		open(const char * i_sFile, const char * i_sAccess_Type);
-		virtual void		swap(unique_file_base & i_cRHO); 
-	};
-
-
-	class shared_file_inst : public shared_file_base, public cfile_base_inst
-	{
-	private:
-		std::shared_ptr<FILE>	m_pFile;
-		mutable std::shared_ptr<std::mutex>		m_pMutex;
-
-		virtual FILE * get_file_pointer(void) const;
-		virtual std::mutex * get_mutex_pointer(void) const;
-
-	public:
-		void construct(void);
-		void destruct(void);
-
-		shared_file_inst(void);
-		virtual ~shared_file_inst(void);
-
-		virtual bool 		close(void);
-		//using cfile_base::open;
-		virtual bool 		open(const char * i_sFile, const char *i_sAccess_Type);
-		virtual void		swap(shared_file_base & i_cRHO); 
-
 	};
 
 	char * allocate_string(size_t i_tSize);
