@@ -1,4 +1,7 @@
+#Code:Blocks
 bin
 *.depend
 *.layout
 
+#Testing
+*.txt

@@ -1,3 +1,4 @@
+#Visual Studio
 *.user
 *.dll
 *.pdb
@@ -12,3 +13,6 @@
 *.ipch
 *.idb
 *.opendb
+
+#Testing
+*.txt
