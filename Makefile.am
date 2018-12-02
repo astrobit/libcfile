@@ -4,7 +4,7 @@ AM_CPPFLAGS = -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-priva
 lib_LTLIBRARIES = libcfile.la
 #libcfile_la_SOURCES = src/cfile_base.cpp  src/string_management.cpp src/shared_file.cpp src/unique_file.cpp
 libcfile_la_SOURCES = src/cfile_base.cpp  src/string_management.cpp
-libcfile_la_LDFLAGS = -version-info 2:2:0
+libcfile_la_LDFLAGS = -version-info 2:0:0
 
 include_HEADERS = include/cfile.hpp
 noinst_HEADERS = include/cfile_inst.hpp
