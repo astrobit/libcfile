@@ -4,7 +4,6 @@
 #include <cstdarg>
 #include <cfile_inst.hpp>
 #include <cstring>
-#undef __STDC_WANT_LIB_EXT1__
 
 using namespace cfile;
 
@@ -83,7 +82,7 @@ bool cfile_base_inst::open(const char *i_sFile, const char * i_sAccess_Type)
 	{
 		//printf("open: opening file\n");
 		FILE * pFile = nullptr;
-#if (_MSC_VER > 1200) // this is a guess as to version
+#if (defined (_MSC_VER) && (_MSC_VER > 1200)) // this is a guess as to version
 		errno_t nErr = fopen_s(&pFile, i_sFile, i_sAccess_Type);
 		bRet = nErr == 0;
 #elif defined(__STDC_LIB_EXT1__)
@@ -282,7 +281,7 @@ const char * cfile_base_inst::gets(size_t i_tSize_Bytes) const
 		}
 	}
 	char * lpRet = allocate_string(sRet.size() + 1);
-#if (defined(__STDC_LIB_EXT1__) || (_MSC_VER > 1200))
+#if (defined(__STDC_LIB_EXT1__) || (defined(_MSC_VER) && _MSC_VER > 1200))
 	strcpy_s(lpRet, sRet.size() + 1,sRet.c_str());
 #else
 	strcpy(lpRet, sRet.c_str());
@@ -318,7 +317,7 @@ const char * cfile_base_inst::gets_stripped(size_t i_tSize_Bytes) const
 		}
 	}
 	char * lpRet = allocate_string(sRet.size() + 1);
-#if (defined(__STDC_LIB_EXT1__) || (_MSC_VER > 1200))
+#if (defined(__STDC_LIB_EXT1__) || (defined(_MSC_VER) && _MSC_VER > 1200))
 	strcpy_s(lpRet, sRet.size() + 1, sRet.c_str());
 #else
 	strcpy(lpRet, sRet.c_str());
