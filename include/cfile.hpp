@@ -14,9 +14,10 @@ namespace cfile
 	enum class access_mode{read,write,append,read_update,write_update,append_update};
 	enum class data_type{binary,text};
 
-	EXPORT class cfile_base
+	class EXPORT cfile_base
 	{
 	public:
+	    virtual ~cfile_base(void) {}
 		// pure virtual open and close
 		virtual bool 		close(void) = 0;
 		virtual bool 		open(const char * i_sFile, const char * i_sAccess_Type) = 0;
@@ -34,7 +35,7 @@ namespace cfile
 		virtual fpos_t 		getpos(void) const = 0;
 		virtual bool 		setpos(fpos_t i_cPos) const = 0;
 		virtual bool 		eof(void) const = 0;
-		virtual bool 		error(void) const = 0;		
+		virtual bool 		error(void) const = 0;
 		virtual bool 		rewind(size_t i_nDistance = static_cast<size_t>(-1)) const = 0;
 		virtual bool 		fast_forward(size_t i_nDistance) const = 0;
 		virtual bool 		seek(long int i_nDistance, int i_nOrigin) const = 0;
@@ -66,7 +67,7 @@ namespace cfile
 	protected:
 		virtual cfile_base * get_file_pointer(void) const = 0;
 	public:
-		
+        virtual ~cfile_inst_base(void){}
 		bool 		close(void)
 		{
 			bool bRet = true;
