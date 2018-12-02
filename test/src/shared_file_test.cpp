@@ -44,7 +44,7 @@ int main(int i_iNum_Args, char * i_ppArgs[])
 	else
 		printf("new SF failed\n");
 
-	cfile::shared_file pSFA = new cfile::shared_file[3];
+	cfile::shared_file *pSFA = new cfile::shared_file[3];
 	if (pSFA != nullptr)
 	{
 //		printf("SF file array alocated\n");
@@ -52,7 +52,7 @@ int main(int i_iNum_Args, char * i_ppArgs[])
 			test_shared_file(&pSFA[nI]);
 		delete [] pSFA;
 //		printf("SF file array deleted\n");
-		pSF = nullptr;
+		pSFA = nullptr;
 	}
 	else
 		printf("new SF array failed\n");
