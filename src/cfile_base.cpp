@@ -122,14 +122,15 @@ bool cfile_base_inst::close(void)
 	{
 		std::mutex * pMutex = m_pMutex.get();
 		if (pMutex != nullptr)
-	//fprintf(stdout,"close: file non null\n");
+			//fprintf(stdout,"close: file non null\n");
 		{
-	//fprintf(stdout,"close: mutex non null\n");
+			//fprintf(stdout,"close: mutex non null\n");
 			std::lock_guard<std::mutex> lock(*pMutex); // hold mutex while file is closed
 			m_pFile.reset();
 		} // mutex released
-		m_pMutex.reset(); // reset the mutex so that if this instance is shared it won't lock
 	}
+	if (m_pMutex != nullptr)
+		m_pMutex.reset();
 	return m_pFile == nullptr;
 }
 
@@ -280,9 +281,10 @@ const char * cfile_base_inst::gets(size_t i_tSize_Bytes) const
 			}
 		}
 	}
-	char * lpRet = allocate_string(sRet.size() + 1);
+	size_t nAlloc = sRet.size() + 2;
+	char * lpRet = allocate_string(nAlloc);
 #if (defined(__STDC_LIB_EXT1__) || (defined(_MSC_VER) && _MSC_VER > 1200))
-	strcpy_s(lpRet, sRet.size() + 1,sRet.c_str());
+	strcpy_s(lpRet, nAlloc,sRet.c_str());
 #else
 	strcpy(lpRet, sRet.c_str());
 #endif
@@ -316,9 +318,10 @@ const char * cfile_base_inst::gets_stripped(size_t i_tSize_Bytes) const
 			}
 		}
 	}
-	char * lpRet = allocate_string(sRet.size() + 1);
+	size_t nAlloc = sRet.size() + 2;
+	char * lpRet = allocate_string(nAlloc);
 #if (defined(__STDC_LIB_EXT1__) || (defined(_MSC_VER) && _MSC_VER > 1200))
-	strcpy_s(lpRet, sRet.size() + 1, sRet.c_str());
+	strcpy_s(lpRet, nAlloc, sRet.c_str());
 #else
 	strcpy(lpRet, sRet.c_str());
 #endif
