@@ -3,7 +3,7 @@
 #include <vector>
 #include <map>
 
-std::vector<std::unique_ptr<char>> g_vAllocated_Pointers;
+std::vector<std::unique_ptr<char[]>> g_vAllocated_Pointers;
 std::map<const char *, size_t> g_mapPointers;
 
 std::mutex g_mString_Add;
@@ -12,7 +12,7 @@ char * cfile::allocate_string(size_t i_tSize)
 {
 	std::lock_guard<std::mutex> lock(g_mString_Add);
 	size_t tIdx = g_vAllocated_Pointers.size();
-	g_vAllocated_Pointers.push_back(std::make_unique<char>(i_tSize));
+	g_vAllocated_Pointers.push_back(std::make_unique<char[]>(i_tSize));
 	char * lpInst = g_vAllocated_Pointers.back().get();
 	if (lpInst != nullptr)
 	{
