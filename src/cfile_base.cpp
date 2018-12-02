@@ -1,8 +1,10 @@
+#define __STDC_WANT_LIB_EXT1__ 1
 #include <cstdio>
 #include <cfile.hpp>
 #include <cstdarg>
 #include <cfile_inst.hpp>
 #include <cstring>
+#undef __STDC_WANT_LIB_EXT1__
 
 using namespace cfile;
 
@@ -33,7 +35,7 @@ cfile_base *		cfile::new_cfile(const char * i_pFilename, const char * i_pAccess)
 			}
 		}
 	}
-	return reinterpret_cast<cfile_base *>(pInst);
+	return pInst;// reinterpret_cast<cfile_base *>(pInst);
 }
 cfile_base *		cfile::new_cfile_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type)
 {
@@ -43,7 +45,7 @@ cfile_base *		cfile::new_cfile_enum(const char * i_pFilename, access_mode i_eAcc
 //		pInst->construct();
 		pInst->open_enum(i_pFilename,i_eAccess_Mode,i_eData_Type);
 	}
-	return reinterpret_cast<cfile_base *>(pInst);
+	return pInst;// reinterpret_cast<cfile_base *>(pInst);
 }
 
 void cfile::delete_cfile(cfile_base * i_pFile)
@@ -79,19 +81,36 @@ bool cfile_base_inst::open(const char *i_sFile, const char * i_sAccess_Type)
 	//printf("in open\n");
 	if (close() && i_sFile != nullptr && i_sFile[0] != 0 && i_sAccess_Type != nullptr)
 	{
-	//printf("open: opening file\n");
-		std::shared_ptr<FILE> pFileNew = std::shared_ptr<FILE>(std::fopen(i_sFile,i_sAccess_Type),&std::fclose);
-		if (pFileNew != nullptr)
+		//printf("open: opening file\n");
+		FILE * pFile = nullptr;
+#if (_MSC_VER > 1200) // this is a guess as to version
+		errno_t nErr = fopen_s(&pFile, i_sFile, i_sAccess_Type);
+		bRet = nErr == 0;
+#elif defined(__STDC_LIB_EXT1__)
+		errno_t nErr = std::fopen_s(&pFile, i_sFile, i_sAccess_Type);
+		bRet = nErr == 0;
+#else
+		pFile = std::fopen(i_sFile, i_sAccess_Type);
+		bRet = (pFile != nullptr);
+#endif
+		if (bRet)
 		{
-	//printf("open: allocating mutex\n");
-			std::shared_ptr<std::mutex> mtx = std::make_shared<std::mutex>();
-			if (mtx != nullptr)
+			bRet = false; // not ready to say we've succeeded
+			std::shared_ptr<FILE> pFileNew = std::shared_ptr<FILE>(pFile, &std::fclose);
+			if (pFileNew != nullptr)
 			{
-	//printf("open: lock and swap\n");
-				std::lock_guard<std::mutex> lock(*mtx.get());
-				m_pMutex = mtx;
-				m_pFile = pFileNew;
-				bRet = (m_pFile != nullptr);
+				//printf("open: allocating mutex\n");
+				std::shared_ptr<std::mutex> mtx = std::make_shared<std::mutex>();
+				if (mtx != nullptr)
+				{
+					//printf("open: lock and swap\n");
+					std::lock_guard<std::mutex> lock(*mtx.get());
+					m_pMutex = mtx;
+					m_pFile = pFileNew;
+					bRet = (m_pFile != nullptr);
+				}
+				else
+					pFileNew.reset(); // if we can't get the mutex, close the file.
 			}
 		}
 	}
@@ -235,7 +254,8 @@ size_t cfile_base_inst::scanf(const char * i_sFormat, ...) const
 const char * cfile_base_inst::gets(size_t i_tSize_Bytes) const
 {
 	std::string sRet;
-	char nC;
+
+	int nC;
 	std::mutex * pMutex = m_pMutex.get();
 	if (pMutex != nullptr)
 	{
@@ -248,28 +268,32 @@ const char * cfile_base_inst::gets(size_t i_tSize_Bytes) const
 			while (!bEOL && sRet.size() < i_tSize_Bytes && (nC = std::fgetc(pFile)) != EOF)
 			{
 				bEOL = (nC == 10 || nC == 13);
-				sRet.push_back(nC);
+				sRet.push_back(static_cast<char>(nC));
 			}
 			// read the reast of the end of line or to EOF
 			while (bEOL && sRet.size() < i_tSize_Bytes && (nC = std::fgetc(pFile)) != EOF)
 			{
 				bEOL = (nC == 10 || nC == 13);
 				if (bEOL)
-					sRet.push_back(nC);
+					sRet.push_back(static_cast<char>(nC));
 				else
 					std::fseek(pFile,-1,SEEK_CUR);
 			}
 		}
 	}
 	char * lpRet = allocate_string(sRet.size() + 1);
-	strcpy(lpRet,sRet.c_str());
+#if (defined(__STDC_LIB_EXT1__) || (_MSC_VER > 1200))
+	strcpy_s(lpRet, sRet.size() + 1,sRet.c_str());
+#else
+	strcpy(lpRet, sRet.c_str());
+#endif
 	return lpRet;
 }
 
 const char * cfile_base_inst::gets_stripped(size_t i_tSize_Bytes) const
 {
 	std::string sRet;
-	char nC;
+	int nC;
 	std::mutex * pMutex = m_pMutex.get();
 	if (pMutex != nullptr)
 	{
@@ -282,7 +306,7 @@ const char * cfile_base_inst::gets_stripped(size_t i_tSize_Bytes) const
 			while (!bEOL && sRet.size() < i_tSize_Bytes && (nC = std::fgetc(pFile)) != EOF)
 			{
 				bEOL = (nC == 10 || nC == 13);
-				sRet.push_back(nC);
+				sRet.push_back(static_cast<char>(nC));
 			}
 			// read the reast of the end of line or to EOF
 			while (bEOL && sRet.size() < i_tSize_Bytes && (nC = std::fgetc(pFile)) != EOF)
@@ -294,7 +318,11 @@ const char * cfile_base_inst::gets_stripped(size_t i_tSize_Bytes) const
 		}
 	}
 	char * lpRet = allocate_string(sRet.size() + 1);
-	strcpy(lpRet,sRet.c_str());
+#if (defined(__STDC_LIB_EXT1__) || (_MSC_VER > 1200))
+	strcpy_s(lpRet, sRet.size() + 1, sRet.c_str());
+#else
+	strcpy(lpRet, sRet.c_str());
+#endif
 	return lpRet;
 }
 
@@ -316,6 +344,7 @@ size_t cfile_base_inst::puts(const char * i_sString) const
 
 fpos_t cfile_base_inst::getpos(void) const
 {
+	bool bSuccess = false;
 	fpos_t cPos;
 	std::mutex * pMutex = m_pMutex.get();
 	if (pMutex != nullptr)
@@ -325,8 +354,11 @@ fpos_t cfile_base_inst::getpos(void) const
 		if (pFile != nullptr)
 		{
 			std::fgetpos(pFile,&cPos);
+			bSuccess = true;
 		}
 	}
+	if (!bSuccess)
+		memset(&cPos, 0, sizeof(cPos));
 	return cPos;
 }
 
@@ -483,7 +515,7 @@ char cfile_base_inst::getc(void) const
 		std::lock_guard<std::mutex> lock(*pMutex);
 		FILE * pFile = m_pFile.get();
 		if (pFile != nullptr)
-			nRet = std::fgetc(pFile);
+			nRet = static_cast<char>(std::fgetc(pFile));
 	}
 	return nRet;
 }
@@ -497,7 +529,7 @@ char cfile_base_inst::putc(char i_nChar) const
 		std::lock_guard<std::mutex> lock(*pMutex);
 		FILE * pFile = m_pFile.get();
 		if (pFile != nullptr)
-			nRet = std::fputc(i_nChar,pFile);
+			nRet = static_cast<char>(std::fputc(i_nChar,pFile));
 	}
 	return nRet;
 }
