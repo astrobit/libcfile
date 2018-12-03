@@ -22,7 +22,7 @@ char * cfile::allocate_string(size_t i_tSize)
 }
 
 
-void cfile::release_string(const char * i_lpszString)
+void __stdcall cfile::release_string(const char * i_lpszString)
 {
 	std::lock_guard<std::mutex> lock(g_mString_Add);
 	// make sure that the pointer is not already null and that we are the owner

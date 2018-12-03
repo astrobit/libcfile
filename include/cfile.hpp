@@ -25,8 +25,8 @@ namespace cfile
 		virtual bool 		open_enum(const char * i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type) = 0;
 
 		virtual bool 		flush(void) const = 0;
-		virtual size_t 		read(void * o_lpBuffer, size_t i_nSize_Bytes) const = 0;
-		virtual size_t 		write(void * o_lpBuffer, size_t i_nSize_Bytes) const = 0;
+		virtual size_t 		read(void * o_pBuffer, size_t i_nSize_Bytes) const = 0;
+		virtual size_t 		write(void * o_pBuffer, size_t i_nSize_Bytes) const = 0;
 		virtual size_t 		printf(const char * i_sFormat, ...) const = 0;
 		virtual size_t 		scanf(const char * i_sFormat, ...) const = 0;
 		virtual const char *		gets(size_t i_tSize_Bytes = static_cast<size_t>(-1)) const = 0;
@@ -52,10 +52,13 @@ namespace cfile
 //		void operator delete(void *) = delete;
 	};
 
-
-	EXPORT extern cfile_base *				new_cfile(const char * i_pFilename = nullptr, const char * i_pAccess = nullptr);
-	EXPORT extern cfile_base *				new_cfile_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type);
-	EXPORT extern void						delete_cfile(cfile_base * i_pUnique);
+	extern "C"
+	{
+		EXPORT cfile_base *	__stdcall	new_cfile(const char * i_pFilename = nullptr, const char * i_pAccess = nullptr);
+		EXPORT cfile_base *	__stdcall	new_cfile_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type);
+		EXPORT void			__stdcall	delete_cfile(cfile_base * i_pFile);
+		EXPORT void			__stdcall	release_string(const char * i_psString);
+	}
 
 	class cfile_base_deleter
 	{
@@ -66,7 +69,6 @@ namespace cfile
 		}
 	};
 
-	EXPORT extern void release_string(const char * i_lpszString);
 
 
 
@@ -86,24 +88,24 @@ namespace cfile
 			}
 			return bRet;
 		}
-		bool open(const char * i_sFile, const char * i_sAccess_Type)
+		bool open(const std::string & i_sFile, const std::string & i_sAccess_Type)
 		{
 			bool bRet = false;
 			cfile_base * pFile = get_file_pointer();
 			if (pFile != nullptr)
 			{
-				bRet = pFile->open(i_sFile,i_sAccess_Type);
+				bRet = pFile->open(i_sFile.c_str(),i_sAccess_Type.c_str());
 			}
 			return bRet;
 		}
 		// alternate variant of open that uses slightly more user friendly method
-		bool open_enum(const char * i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type)
+		bool open_enum(const std::string & i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type)
 		{
 			bool bRet = false;
 			cfile_base * pFile = get_file_pointer();
 			if (pFile != nullptr)
 			{
-				bRet = pFile->open_enum(i_sFile,i_eAccess_Mode,i_eData_Type);
+				bRet = pFile->open_enum(i_sFile.c_str(),i_eAccess_Mode,i_eData_Type);
 			}
 			return bRet;
 		}
@@ -164,13 +166,13 @@ namespace cfile
 			}
 			return sRet;
 		}
-		size_t 		puts(const char * i_sString) const
+		size_t 		puts(const std::string & i_sString) const
 		{
 			size_t nNum = 0;
 			cfile_base * pFile = get_file_pointer();
 			if (pFile != nullptr)
 			{
-				nNum = pFile->puts(i_sString);
+				nNum = pFile->puts(i_sString.c_str());
 			}
 			return nNum;
 		}
