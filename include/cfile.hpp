@@ -56,7 +56,15 @@ namespace cfile
 	EXPORT extern cfile_base *				new_cfile(const char * i_pFilename = nullptr, const char * i_pAccess = nullptr);
 	EXPORT extern cfile_base *				new_cfile_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type);
 	EXPORT extern void						delete_cfile(cfile_base * i_pUnique);
-	EXPORT extern void						delete_cfile_deleter(void * i_pUnique);
+
+	class cfile_base_deleter
+	{
+	public:
+		void operator()(cfile_base * i_pFile)const
+		{
+			delete_cfile(i_pFile);
+		}
+	};
 
 	EXPORT extern void release_string(const char * i_lpszString);
 
@@ -307,6 +315,7 @@ namespace cfile
 		}
 
 	};
+
 	class shared_file : public cfile_inst_base
 	{
 	private:
@@ -317,7 +326,7 @@ namespace cfile
 			return m_pFile.get();
 		}
 	public:
-		shared_file(void) : m_pFile(new_cfile(),delete_cfile_deleter) {}
+		shared_file(void) : m_pFile(new_cfile(), cfile_base_deleter()) {}
 
 	};
 

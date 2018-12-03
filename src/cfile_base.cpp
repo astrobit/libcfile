@@ -51,15 +51,11 @@ void cfile::delete_cfile(cfile_base * i_pFile)
 {
 	if (i_pFile != nullptr)
 	{
-		cfile_base_inst * pInst = reinterpret_cast<cfile_base_inst *>(i_pFile);
+		//cfile_base_inst * pInst = reinterpret_cast<cfile_base_inst *>(i_pFile);
 //		pInst->destruct();
-		delete pInst;
+		delete i_pFile;
 //		free(pInst);
 	}
-}
-void cfile::delete_cfile_deleter(void * i_pFile)
-{
-	delete_cfile(reinterpret_cast<cfile_base *>(i_pFile));
 }
 
 
