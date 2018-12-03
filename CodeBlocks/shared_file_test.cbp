@@ -15,6 +15,7 @@
 					<Add option="-m32" />
 					<Add option="-g" />
 					<Add option="-I../include" />
+					<Add option="-DLIBCFILE_IMPORT=1" />
 				</Compiler>
 				<Linker>
 					<Add option="-m32" />
@@ -29,6 +30,7 @@
 				<Compiler>
 					<Add option="-m32" />
 					<Add option="-I../include" />
+					<Add option="-DLIBCFILE_IMPORT=1" />
 				</Compiler>
 				<Linker>
 					<Add option="-O3" />

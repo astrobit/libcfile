@@ -13,13 +13,8 @@ using namespace cfile;
 //void						delete_cfile_deleter(void * i_pUnique);
 
 
-#if defined(_WIN32) || defined(_WIN64)
-	#define STDCALL __stdcall
-#else
-	#define STDCALL
-#endif
 
-cfile_base * STDCALL	cfile::new_cfile(const char * i_pFilename, const char * i_pAccess)
+cfile_base * __LIBCFILE_DECL	cfile::new_cfile(const char * i_pFilename, const char * i_pAccess)
 {
 	cfile_base_inst * pInst = new cfile_base_inst; //reinterpret_cast<shared_file_inst*>(malloc(sizeof(shared_file_inst)));
 	if (pInst != nullptr)
@@ -42,7 +37,7 @@ cfile_base * STDCALL	cfile::new_cfile(const char * i_pFilename, const char * i_p
 	}
 	return pInst;// reinterpret_cast<cfile_base *>(pInst);
 }
-cfile_base * STDCALL	cfile::new_cfile_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type)
+cfile_base * __LIBCFILE_DECL	cfile::new_cfile_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type)
 {
 	cfile_base_inst * pInst = new cfile_base_inst; //reinterpret_cast<shared_file_inst*>(malloc(sizeof(shared_file_inst)));
 	if (pInst != nullptr)
@@ -53,7 +48,7 @@ cfile_base * STDCALL	cfile::new_cfile_enum(const char * i_pFilename, access_mode
 	return pInst;// reinterpret_cast<cfile_base *>(pInst);
 }
 
-void STDCALL cfile::delete_cfile(cfile_base * i_pFile)
+void __LIBCFILE_DECL cfile::delete_cfile(cfile_base * i_pFile)
 {
 	if (i_pFile != nullptr)
 	{
@@ -63,7 +58,7 @@ void STDCALL cfile::delete_cfile(cfile_base * i_pFile)
 //		free(pInst);
 	}
 }
-#undef STDCALL
+
 
 
 cfile_base_inst::cfile_base_inst(void) : m_pFile(), m_pMutex()
@@ -76,7 +71,7 @@ cfile_base_inst::~cfile_base_inst(void)
 }
 
 
-bool cfile_base_inst::open(const char *i_sFile, const char * i_sAccess_Type)
+bool __LIBCFILE_DECL cfile_base_inst::open(const char *i_sFile, const char * i_sAccess_Type)
 {
 	bool bRet = false;
 	//printf("in open\n");
@@ -117,7 +112,7 @@ bool cfile_base_inst::open(const char *i_sFile, const char * i_sAccess_Type)
 	}
 	return bRet;
 }
-bool cfile_base_inst::close(void)
+bool __LIBCFILE_DECL cfile_base_inst::close(void)
 {
 	//fprintf(stdout,"in close\n");
 	if (m_pFile != nullptr)
@@ -136,7 +131,7 @@ bool cfile_base_inst::close(void)
 	return m_pFile == nullptr;
 }
 
-bool cfile_base_inst::flush(void) const
+bool __LIBCFILE_DECL cfile_base_inst::flush(void) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = m_pMutex.get();
@@ -153,7 +148,7 @@ bool cfile_base_inst::flush(void) const
 }
 
 
-bool cfile_base_inst::open_enum(const char * i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type)
+bool __LIBCFILE_DECL cfile_base_inst::open_enum(const char * i_sFile, access_mode i_eAccess_Mode, data_type i_eData_Type)
 {
 	char pMode[4] = {0,0,0,0};
 	switch (i_eAccess_Mode)
@@ -185,7 +180,7 @@ bool cfile_base_inst::open_enum(const char * i_sFile, access_mode i_eAccess_Mode
 		pMode[tIdx] = 't';
 	return open(i_sFile,pMode);
 }
-size_t cfile_base_inst::read(void * o_lpBuffer, size_t i_nSize_Bytes) const
+size_t __LIBCFILE_DECL cfile_base_inst::read(void * o_lpBuffer, size_t i_nSize_Bytes) const
 {
 	size_t nRet = 0;
 	std::mutex * pMutex = m_pMutex.get();
@@ -200,7 +195,7 @@ size_t cfile_base_inst::read(void * o_lpBuffer, size_t i_nSize_Bytes) const
 	}
 	return nRet;
 }
-size_t cfile_base_inst::write(void * o_lpBuffer, size_t i_nSize_Bytes) const
+size_t __LIBCFILE_DECL cfile_base_inst::write(void * o_lpBuffer, size_t i_nSize_Bytes) const
 {
 	size_t nRet = 0;
 	std::mutex * pMutex = m_pMutex.get();
@@ -215,7 +210,7 @@ size_t cfile_base_inst::write(void * o_lpBuffer, size_t i_nSize_Bytes) const
 	}
 	return nRet;
 }
-size_t cfile_base_inst::printf(const char * i_sFormat, ...) const
+size_t __LIBCFILE_DECL cfile_base_inst::printf(const char * i_sFormat, ...) const
 {
 	size_t nRet = 0;
 	std::mutex * pMutex = m_pMutex.get();
@@ -234,7 +229,7 @@ size_t cfile_base_inst::printf(const char * i_sFormat, ...) const
 	return nRet;
 }
 
-size_t cfile_base_inst::scanf(const char * i_sFormat, ...) const
+size_t __LIBCFILE_DECL cfile_base_inst::scanf(const char * i_sFormat, ...) const
 {
 	size_t nRet = 0;
 	std::mutex * pMutex = m_pMutex.get();
@@ -253,7 +248,7 @@ size_t cfile_base_inst::scanf(const char * i_sFormat, ...) const
 	return nRet;
 }
 
-const char * cfile_base_inst::gets(size_t i_tSize_Bytes) const
+const char * __LIBCFILE_DECL cfile_base_inst::gets(size_t i_tSize_Bytes) const
 {
 	std::string sRet;
 
@@ -293,7 +288,7 @@ const char * cfile_base_inst::gets(size_t i_tSize_Bytes) const
 	return lpRet;
 }
 
-const char * cfile_base_inst::gets_stripped(size_t i_tSize_Bytes) const
+const char * __LIBCFILE_DECL cfile_base_inst::gets_stripped(size_t i_tSize_Bytes) const
 {
 	std::string sRet;
 	int nC;
@@ -330,7 +325,7 @@ const char * cfile_base_inst::gets_stripped(size_t i_tSize_Bytes) const
 	return lpRet;
 }
 
-size_t cfile_base_inst::puts(const char * i_sString) const
+size_t __LIBCFILE_DECL cfile_base_inst::puts(const char * i_sString) const
 {
 	size_t tRet = 0;
 	std::mutex * pMutex = m_pMutex.get();
@@ -346,7 +341,7 @@ size_t cfile_base_inst::puts(const char * i_sString) const
 	return tRet;
 }
 
-fpos_t cfile_base_inst::getpos(void) const
+fpos_t __LIBCFILE_DECL cfile_base_inst::getpos(void) const
 {
 	bool bSuccess = false;
 	fpos_t cPos;
@@ -366,7 +361,7 @@ fpos_t cfile_base_inst::getpos(void) const
 	return cPos;
 }
 
-bool cfile_base_inst::setpos(fpos_t i_cPos) const
+bool __LIBCFILE_DECL cfile_base_inst::setpos(fpos_t i_cPos) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = m_pMutex.get();
@@ -382,7 +377,7 @@ bool cfile_base_inst::setpos(fpos_t i_cPos) const
 	return bRet;
 }
 
-bool cfile_base_inst::eof(void) const
+bool __LIBCFILE_DECL cfile_base_inst::eof(void) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = m_pMutex.get();
@@ -398,7 +393,7 @@ bool cfile_base_inst::eof(void) const
 	return bRet;
 }
 
-bool cfile_base_inst::error(void) const
+bool __LIBCFILE_DECL cfile_base_inst::error(void) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = m_pMutex.get();
@@ -412,7 +407,7 @@ bool cfile_base_inst::error(void) const
 	return bRet;
 }
 
-bool cfile_base_inst::rewind(size_t i_nDistance) const
+bool __LIBCFILE_DECL cfile_base_inst::rewind(size_t i_nDistance) const
 {
 	bool bRet = false;
 	if  (i_nDistance == static_cast<size_t>(-1))
@@ -446,7 +441,7 @@ bool cfile_base_inst::rewind(size_t i_nDistance) const
 	}
 	return bRet;
 }
-bool cfile_base_inst::fast_forward(size_t i_nDistance) const
+bool __LIBCFILE_DECL cfile_base_inst::fast_forward(size_t i_nDistance) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = m_pMutex.get();
@@ -459,7 +454,7 @@ bool cfile_base_inst::fast_forward(size_t i_nDistance) const
 	}
 	return bRet;
 }
-bool cfile_base_inst::seek(long int i_nDistance, int i_nOrigin) const
+bool __LIBCFILE_DECL cfile_base_inst::seek(long int i_nDistance, int i_nOrigin) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = m_pMutex.get();
@@ -472,7 +467,7 @@ bool cfile_base_inst::seek(long int i_nDistance, int i_nOrigin) const
 	}
 	return bRet;
 }
-bool cfile_base_inst::rewind_to_start(void) const
+bool __LIBCFILE_DECL cfile_base_inst::rewind_to_start(void) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = m_pMutex.get();
@@ -485,7 +480,7 @@ bool cfile_base_inst::rewind_to_start(void) const
 	}
 	return bRet;
 }
-bool cfile_base_inst::forward_to_end(void) const
+bool __LIBCFILE_DECL cfile_base_inst::forward_to_end(void) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = m_pMutex.get();
@@ -498,7 +493,7 @@ bool cfile_base_inst::forward_to_end(void) const
 	}
 	return bRet;
 }
-void cfile_base_inst::clear_error(void) const
+void __LIBCFILE_DECL cfile_base_inst::clear_error(void) const
 {
 	std::mutex * pMutex = m_pMutex.get();
 	if (pMutex != nullptr)
@@ -510,7 +505,7 @@ void cfile_base_inst::clear_error(void) const
 	}
 }
 
-char cfile_base_inst::getc(void) const
+char __LIBCFILE_DECL cfile_base_inst::getc(void) const
 {
 	char nRet = EOF;
 	std::mutex * pMutex = m_pMutex.get();
@@ -524,7 +519,7 @@ char cfile_base_inst::getc(void) const
 	return nRet;
 }
 
-char cfile_base_inst::putc(char i_nChar) const
+char __LIBCFILE_DECL cfile_base_inst::putc(char i_nChar) const
 {
 	char nRet = EOF;
 	std::mutex * pMutex = m_pMutex.get();
@@ -538,7 +533,7 @@ char cfile_base_inst::putc(char i_nChar) const
 	return nRet;
 }
 
-size_t cfile_base_inst::tell(void) const
+size_t __LIBCFILE_DECL cfile_base_inst::tell(void) const
 {
 	size_t nRet = 0;
 	std::mutex * pMutex = m_pMutex.get();
@@ -552,7 +547,7 @@ size_t cfile_base_inst::tell(void) const
 	return nRet;
 }
 
-bool cfile_base_inst::is_open(void) const
+bool __LIBCFILE_DECL cfile_base_inst::is_open(void) const
 {
 	bool bRet = false;
 	std::mutex * pMutex = m_pMutex.get();
