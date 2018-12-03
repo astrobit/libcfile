@@ -11,7 +11,7 @@
 #else
 #define __LIBCFILE_DLL
 #endif
-	#define __LIBCFILE_DECL __cdecl
+	#define __LIBCFILE_DECL __stdcall
 #else
 	#define __LIBCFILE_DLL
 	#define __LIBCFILE_DECL
