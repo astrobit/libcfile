@@ -1,7 +1,7 @@
 @echo off
 if not exist win_test (mkdir win_test)
-set cbdebug=CB_libcfile\bin\Debug
-set cbrelease=CB_libcfile\bin\Release
+set cbdebug=CodeBlocks\bin\Debug
+set cbrelease=CodeBlocks\bin\Release
 set vsdebug=Visual_Studio\VS17\Debug
 set vsrelease=Visual_Studio\VS17\Release
 set vsdebug64=Visual_Studio\VS17\Debug
