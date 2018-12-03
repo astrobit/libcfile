@@ -8,6 +8,12 @@ std::map<const char *, size_t> g_mapPointers;
 
 std::mutex g_mString_Add;
 
+#if defined(_WIN32) || defined(_WIN64)
+	#define STDCALL __stdcall
+#else
+	#define STDCALL
+#endif
+
 char * cfile::allocate_string(size_t i_tSize)
 {
 	std::lock_guard<std::mutex> lock(g_mString_Add);
@@ -22,7 +28,7 @@ char * cfile::allocate_string(size_t i_tSize)
 }
 
 
-void __stdcall cfile::release_string(const char * i_lpszString)
+void STDCALL cfile::release_string(const char * i_lpszString)
 {
 	std::lock_guard<std::mutex> lock(g_mString_Add);
 	// make sure that the pointer is not already null and that we are the owner
@@ -33,3 +39,4 @@ void __stdcall cfile::release_string(const char * i_lpszString)
 	}
 }
 
+#undef STDCALL

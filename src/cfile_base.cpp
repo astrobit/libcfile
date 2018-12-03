@@ -13,7 +13,13 @@ using namespace cfile;
 //void						delete_cfile_deleter(void * i_pUnique);
 
 
-cfile_base * __stdcall	cfile::new_cfile(const char * i_pFilename, const char * i_pAccess)
+#if defined(_WIN32) || defined(_WIN64)
+	#define STDCALL __stdcall
+#else
+	#define STDCALL
+#endif
+
+cfile_base * STDCALL	cfile::new_cfile(const char * i_pFilename, const char * i_pAccess)
 {
 	cfile_base_inst * pInst = new cfile_base_inst; //reinterpret_cast<shared_file_inst*>(malloc(sizeof(shared_file_inst)));
 	if (pInst != nullptr)
@@ -36,7 +42,7 @@ cfile_base * __stdcall	cfile::new_cfile(const char * i_pFilename, const char * i
 	}
 	return pInst;// reinterpret_cast<cfile_base *>(pInst);
 }
-cfile_base * __stdcall	cfile::new_cfile_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type)
+cfile_base * STDCALL	cfile::new_cfile_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type)
 {
 	cfile_base_inst * pInst = new cfile_base_inst; //reinterpret_cast<shared_file_inst*>(malloc(sizeof(shared_file_inst)));
 	if (pInst != nullptr)
@@ -47,7 +53,7 @@ cfile_base * __stdcall	cfile::new_cfile_enum(const char * i_pFilename, access_mo
 	return pInst;// reinterpret_cast<cfile_base *>(pInst);
 }
 
-void __stdcall cfile::delete_cfile(cfile_base * i_pFile)
+void STDCALL cfile::delete_cfile(cfile_base * i_pFile)
 {
 	if (i_pFile != nullptr)
 	{
@@ -57,7 +63,7 @@ void __stdcall cfile::delete_cfile(cfile_base * i_pFile)
 //		free(pInst);
 	}
 }
-
+#undef STDCALL
 
 
 cfile_base_inst::cfile_base_inst(void) : m_pFile(), m_pMutex()

@@ -5,8 +5,10 @@
 //
 #if defined(_WIN32) || defined(_WIN64)
 	#define EXPORT	__declspec(dllexport)
+	#define STDCALL __stdcall
 #else
 	#define EXPORT
+	#define STDCALL
 #endif
 
 namespace cfile
@@ -54,10 +56,10 @@ namespace cfile
 
 	extern "C"
 	{
-		EXPORT cfile_base *	__stdcall	new_cfile(const char * i_pFilename = nullptr, const char * i_pAccess = nullptr);
-		EXPORT cfile_base *	__stdcall	new_cfile_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type);
-		EXPORT void			__stdcall	delete_cfile(cfile_base * i_pFile);
-		EXPORT void			__stdcall	release_string(const char * i_psString);
+		EXPORT cfile_base *	STDCALL	new_cfile(const char * i_pFilename = nullptr, const char * i_pAccess = nullptr);
+		EXPORT cfile_base *	STDCALL	new_cfile_enum(const char * i_pFilename, access_mode i_eAccess_Mode, data_type i_eData_Type);
+		EXPORT void			STDCALL	delete_cfile(cfile_base * i_pFile);
+		EXPORT void			STDCALL	release_string(const char * i_psString);
 	}
 
 	class cfile_base_deleter
@@ -352,4 +354,6 @@ namespace cfile
 
 
 }
+#undef EXPORT
+#undef STDCALL
 
