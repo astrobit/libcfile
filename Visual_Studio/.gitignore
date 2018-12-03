@@ -13,6 +13,11 @@
 *.ipch
 *.idb
 *.opendb
+*.ipdb
+*.iobj
+*.db-shm
+*.db-wal
+
 
 #Testing
 *.txt
