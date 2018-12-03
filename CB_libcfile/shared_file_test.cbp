@@ -12,33 +12,13 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-Wnon-virtual-dtor" />
-					<Add option="-Wshadow" />
-					<Add option="-Winit-self" />
-					<Add option="-Wredundant-decls" />
-					<Add option="-Wcast-align" />
-					<Add option="-Wundef" />
-					<Add option="-Wfloat-equal" />
-					<Add option="-Winline" />
-					<Add option="-Wunreachable-code" />
-					<Add option="-Wmissing-declarations" />
-					<Add option="-Wmissing-include-dirs" />
-					<Add option="-Wswitch-enum" />
-					<Add option="-Wswitch-default" />
-					<Add option="-Weffc++" />
-					<Add option="-Wzero-as-null-pointer-constant" />
-					<Add option="-Wmain" />
-					<Add option="-pedantic-errors" />
-					<Add option="-pedantic" />
-					<Add option="-w" />
-					<Add option="-Wfatal-errors" />
-					<Add option="-Wextra" />
-					<Add option="-std=c++14" />
+					<Add option="-m32" />
 					<Add option="-g" />
 					<Add option="-I../include" />
 				</Compiler>
 				<Linker>
-					<Add library="bin/Debug/libCB_libcfile.a" />
+					<Add option="-m32" />
+					<Add library="bin/Debug/libcfile.a" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -47,15 +27,39 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-m32" />
+					<Add option="-I../include" />
 				</Compiler>
 				<Linker>
+					<Add option="-O3" />
 					<Add option="-s" />
+					<Add option="-m32" />
+					<Add library="bin/Release/libcfile.a" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-Wall" />
+			<Add option="-Wnon-virtual-dtor" />
+			<Add option="-Wshadow" />
+			<Add option="-Winit-self" />
+			<Add option="-Wredundant-decls" />
+			<Add option="-Wcast-align" />
+			<Add option="-Wundef" />
+			<Add option="-Wfloat-equal" />
+			<Add option="-Winline" />
+			<Add option="-Wunreachable-code" />
+			<Add option="-Wmissing-declarations" />
+			<Add option="-Wmissing-include-dirs" />
+			<Add option="-Wswitch-enum" />
+			<Add option="-Wswitch-default" />
+			<Add option="-Weffc++" />
+			<Add option="-Wzero-as-null-pointer-constant" />
+			<Add option="-Wmain" />
+			<Add option="-pedantic-errors" />
+			<Add option="-pedantic" />
+			<Add option="-Wfatal-errors" />
+			<Add option="-Wextra" />
+			<Add option="-std=c++14" />
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Unit filename="../test/src/shared_file_test.cpp" />
